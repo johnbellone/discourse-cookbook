@@ -16,8 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-include_recipe 'ruby-install::default'
 include_recipe 'postgresql::client'
+
+root_path = node['discourse']['root_path'] % { name: node['discourse']['site_name'] }
 
 group node['discourse']['group'] do
   system true
@@ -34,19 +35,19 @@ ruby_install_ruby '2.0.0' do
   gems %w(bundler puma nokogiri redis)
 end
 
-directory node['discourse']['site_root'] do
+directory root_path do
   user node['discourse']['user']
   group node['discourse']['group']
   recursive true
-  not_if { ::Dir.exist? node['discourse']['site_root'] }
+  not_if { ::Dir.exist? root_path }
 end
 
-artifact_deploy node['discourse']['site_fqdn'] do
-  version node['discourse']['version']
-  artifact_location node['discourse']['artifact_location']
-  deploy_to node['discourse']['site_root']
+artifact_deploy node['discourse']['site_name'] do
+  version node['discourse']['artifact_version']
+  artifact_location node['discourse']['artifact_location'] % { version: node['discourse']['artifact_version'] }
+  deploy_to root_path
   owner node['discourse']['user']
   group node['discourse']['group']
-  environment node['discourse']['environment']
+  environment node['discourse']['site_environment']
   shared_directories %w(data log pids system assets)
 end
