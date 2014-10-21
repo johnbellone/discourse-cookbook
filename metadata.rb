@@ -1,0 +1,15 @@
+name             'discourse'
+maintainer       'John Bellone'
+maintainer_email 'jbellone@bloomberg.net'
+license          'Apache 2.0'
+description      'Installs/Configures Civil Discourse Construction Kit.'
+long_description 'Installs/Configures Civil Discourse Consitrution Kit.'
+version          '0.1.0'
+
+supports 'ubuntu', '= 14.04'
+supports 'ubuntu', '= 12.04'
+
+depends 'artifact'
+depends 'ruby-install'
+depends 'postgresql'
+depends 'redisio'
