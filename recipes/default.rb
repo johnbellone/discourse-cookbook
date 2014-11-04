@@ -1,24 +1,12 @@
 #
-# Cookbook Name:: discourse
+# Cookbook Name:: taiga
 # Recipe:: default
-#
-# Copyright (C) 2014 John Bellone (<jbellone@bloomberg.net>)
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# License:: Apache 2.0 (see http://www.apache.org/licenses/LICENSE-2.0)
 #
 include_recipe 'postgresql::client'
+include_recipe 'ruby-install::default'
 
-root_path = node['discourse']['root_path'] % { name: node['discourse']['site_name'] }
+root_path = node['discourse']['site_root'] % { name: node['discourse']['site_name'] }
 
 group node['discourse']['group'] do
   system true
@@ -29,19 +17,19 @@ user node['discourse']['user'] do
   system true
 end
 
-ruby_install_ruby '2.0.0' do
-  user node['discourse']['user']
-  group node['discourse']['group']
-  gems %w(bundler puma nokogiri redis)
+ruby_install_ruby 'ruby 2.1' do
+  gems [{ name: 'bundler' }, { name: 'puma' }, { name: 'redis' }, { name: 'pg' }]
 end
 
 directory root_path do
   user node['discourse']['user']
   group node['discourse']['group']
   recursive true
-  not_if { ::Dir.exist? root_path }
+  not_if { ::Dir.exist?(root_path) }
 end
 
+# GitHub provides an endpoint which runs `git archive` and delivers it.
+# We can use this in combination with a release tag to deploy an artifact.
 artifact_deploy node['discourse']['site_name'] do
   version node['discourse']['artifact_version']
   artifact_location node['discourse']['artifact_location'] % { version: node['discourse']['artifact_version'] }
