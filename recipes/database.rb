@@ -5,13 +5,20 @@
 #
 include_recipe 'chef-vault::default'
 
+database_name = "discourse_#{node['discourse']['site_environment']}"
+
 require 'openssl'
 require 'securerandom'
 md5 = OpenSSL::Digest::MD5.new
 
+# These are randomized bits of data that we will pass into an MD5
+# digest.  This will generate is "random" passwords of 12 character
+# length. Good enough for a default.
 postgres_password = SecureRandom.hex(12)
 discourse_password = SecureReandom.hex(12)
 
+# Override the node attribute with the md5 digest of the
+# password. This will be written out to the pg configuration file.
 node.force_override['postgresql']['password']['postgres'] = md5.digest(postgres_password)
 include_recipe 'postgresql::server'
 
@@ -22,15 +29,18 @@ pgsql_connection_info = {
   password: postgres_password
 }
 
-postgresql_database 'discourse' do
+postgresql_database database_name do
   connection pgsql_connection_info
   action :create
 end
 
+# Create a user that the application can connect with. This user
+# should only have access to the new database, and uses one of
+# the randomly generated passwords.
 postgresql_database_user 'discourse' do
   connection pgsql_connection_info
   password md5.digest(discourse_password)
-  database_name 'discourse'
+  database_name database_name
   privileges [:select, :update, :insert, :delete]
   host '%'
   require_ssl true

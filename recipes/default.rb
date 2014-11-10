@@ -36,7 +36,7 @@ artifact_deploy node['discourse']['site_name'] do
   deploy_to root_path
   owner node['discourse']['user']
   group node['discourse']['group']
-  environment node['discourse']['site_environment']
+  environment Hash.new(rails_env: node['discourse']['site_environment'])
   shared_directories %w(data log pids system assets)
 
   before_migrate Proc.new {
@@ -65,13 +65,19 @@ artifact_deploy node['discourse']['site_name'] do
   }
 
   configure Proc.new {
-    template "#{shared_path}/env" do
+    template "#{root_path}/current/.env" do
+      source 'env.sh.erb'
       owner node['discourse']['user']
       group node['discourse']['group']
+      mode '0640'
+      variables(environment: node['discourse']['site_environment'])
     end
 
-    link "#{current_path}/.env" do
-      to "#{shared_path}/env"
+    puma_config 'discourse' do
+      directory root_path
+      logrotate true
+      environment node['discourse']['site_environment']
+      workers node['cpu']['total']
     end
   }
 

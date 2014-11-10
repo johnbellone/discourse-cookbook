@@ -8,7 +8,7 @@ default['discourse']['artifact_version'] = '1.1.0'
 
 default['discourse']['site_name'] = 'meta.discourse.org'
 default['discourse']['site_root'] = "/srv/%{name}"
-default['discourse']['site_environment'] = { rails_env: 'production' }
+default['discourse']['site_environment'] = 'production'
 
 default['discourse']['user'] = 'discourse'
 default['discourse']['group'] = 'discourse'

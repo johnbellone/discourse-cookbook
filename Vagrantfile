@@ -4,7 +4,8 @@ Vagrant.configure('2') do |config|
   # and caching for Vagrant.
   config.omnibus.chef_version = :latest if Vagrant.has_plugin?('vagrant-omnibus')
   config.cache.auto_detect = true if Vagrant.has_plugin?('vagrant-cachier')
-  config.berkshelf.enabled = true if Vagrant.has_plugin?('vagrant-berkshelf')
+
+  config.chef_zero.chef_repo_path = ::File.join(Dir.getwd, 'tmp')
 
   # Default to the bento boxes that Chef provides. These do not have
   # any software installed on them. But let's allow easy overrides.
@@ -24,28 +25,21 @@ Vagrant.configure('2') do |config|
 
   config.vm.define :database do |guest|
     guest.vm.network :private_network, ip: '172.10.12.10'
-    guest.vm.provision :chef_solo do |chef|
-      chef.run_list = %w(recipe[postgresql::server])
-      chef.json = {
-        postgresql: {
-          password: {
-            postgres: ENV.fetch('POSTGRESQL_PASSWORD', 'chefchef')
-          }
-        }
-      }
+    guest.vm.provision :chef_client do |chef|
+      chef.run_list = %w(recipe[discourse::database])
     end
   end
 
   config.vm.define :redis do |guest|
     guest.vm.network :private_network, ip: '172.10.12.11'
-    guest.vm.provision :chef_solo do |chef|
+    guest.vm.provision :chef_client do |chef|
       chef.run_list = %w(recipe[redisio::install])
     end
   end
 
   config.vm.define :discourse, primary: true do |guest|
     guest.vm.network :private_network, ip: '172.10.12.12'
-    guest.vm.provision :chef_solo do |chef|
+    guest.vm.provision :chef_client do |chef|
       chef.run_list = %w(recipe[redisio::sentinel] recipe[discourse::default])
       chef.json = {
         redis: {

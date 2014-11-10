@@ -6,6 +6,9 @@
 *.un~
 pkg/
 coverage/
+tmp/
+.zero-knife.rb
+
 
 # Berkshelf
 .vagrant
