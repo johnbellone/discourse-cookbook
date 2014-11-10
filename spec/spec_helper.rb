@@ -1,6 +1,5 @@
 require 'chefspec'
 require 'chefspec/berkshelf'
-require 'chefspec/cacher'
 require 'coveralls'
 
 Coveralls.wear!
@@ -32,7 +31,7 @@ end
 at_exit { ChefSpec::Coverage.report! }
 
 RSpec.shared_context 'recipe tests', type: :recipe do
-  let(:chef_run) { ChefSpec::Runner.new(node_attributes).converge(described_recipe) }
+  let(:chef_run) { ChefSpec::ServerRunner.new(node_attributes).converge(described_recipe) }
 
   def node_attributes
     {

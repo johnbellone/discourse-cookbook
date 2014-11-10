@@ -10,6 +10,8 @@ supports 'ubuntu', '= 14.04'
 supports 'ubuntu', '= 12.04'
 
 depends 'artifact'
+depends 'chef-vault'
+depends 'database'
 depends 'ruby-install'
 depends 'postgresql'
 depends 'redisio'
