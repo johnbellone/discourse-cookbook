@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: taiga
+# Cookbook Name:: discourse
 # Recipe:: default
 # License:: Apache 2.0 (see http://www.apache.org/licenses/LICENSE-2.0)
 #
@@ -38,4 +38,46 @@ artifact_deploy node['discourse']['site_name'] do
   group node['discourse']['group']
   environment node['discourse']['site_environment']
   shared_directories %w(data log pids system assets)
+
+  before_migrate Proc.new {
+    template "#{shared_path}/database.yml" do
+      source 'database.yml.erb'
+      owner node['discourse']['user']
+      group node['discourse']['group']
+      mode '0640'
+      variables(environment: environment, options: database_options)
+    end
+  }
+
+  migrate Proc.new {
+    execute %Q(bundle exec rake db:migrate) do
+      cwd release_path
+      environment environment
+      user node['discourse']['user']
+      group node['discourse']['group']
+    end
+  }
+
+  before_deploy Proc.new {
+    service 'discourse' do
+      action :stop
+    end
+  }
+
+  configure Proc.new {
+    template "#{shared_path}/env" do
+      owner node['discourse']['user']
+      group node['discourse']['group']
+    end
+
+    link "#{current_path}/.env" do
+      to "#{shared_path}/env"
+    end
+  }
+
+  restart Proc.new {
+    service 'discourse' do
+      action :restart
+    end
+  }
 end
