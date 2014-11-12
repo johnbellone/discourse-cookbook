@@ -3,23 +3,24 @@
 # Recipe:: database
 # License:: Apache 2.0 (see http://www.apache.org/licenses/LICENSE-2.0)
 #
+return if Chef::Config[:solo]
 include_recipe 'chef-vault::default'
 
 database_name = "discourse_#{node['discourse']['site_environment']}"
 
 require 'openssl'
-require 'securerandom'
 md5 = OpenSSL::Digest::MD5.new
 
 # These are randomized bits of data that we will pass into an MD5
 # digest.  This will generate is "random" passwords of 12 character
 # length. Good enough for a default.
-postgres_password = SecureRandom.hex(12)
-discourse_password = SecureReandom.hex(12)
+require 'securerandom'
+postgres_password = SecureRandom.hex(16)
+discourse_password = SecureRandom.hex(16)
 
 # Override the node attribute with the md5 digest of the
 # password. This will be written out to the pg configuration file.
-node.force_override['postgresql']['password']['postgres'] = md5.digest(postgres_password)
+node.set['postgresql']['password']['postgres'] = md5.digest(postgres_password)
 include_recipe 'postgresql::server'
 
 pgsql_connection_info = {
@@ -42,7 +43,7 @@ postgresql_database_user 'discourse' do
   password md5.digest(discourse_password)
   database_name database_name
   privileges [:select, :update, :insert, :delete]
-  host '%'
+  host '%' # FIXME: Limit by subnet, or something else?
   require_ssl true
   action [:create, :grant]
 end

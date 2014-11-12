@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'berkshelf'
+gem 'chef-vault'
 gem 'coveralls', require: false
 gem 'rake'
 gem 'stove'

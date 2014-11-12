@@ -11,4 +11,5 @@ platforms:
 
 suites:
   - name: default
-    run_list: recipe[discourse]
+    run_list: recipe[discourse::default]
+      
